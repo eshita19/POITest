@@ -1,53 +1,57 @@
 package com;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
 
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.util.CellUtil;
+import org.apache.poi.ss.util.WorkbookUtil;
 import org.apache.poi.xssf.usermodel.XSSFCell;
-import org.apache.poi.xssf.usermodel.XSSFCellStyle;
-import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class SimpleGrid {
-
 	public static void main(String[] args) {
-		try (XSSFWorkbook workbook = new XSSFWorkbook();) {
-			XSSFSheet sheet = workbook.createSheet();
-			// Create a new font and alter it.
-			XSSFFont font = workbook.createFont();
-			font.setFontHeightInPoints((short) 30);
-			font.setFontName("IMPACT");
-			font.setItalic(true);
-			// font.setColor(XSSFColor.from(CTColor.EQUAL , map));
-
-			// Set font into style
-			XSSFCellStyle style = workbook.createCellStyle();
-			style.setFont(font);
-
+		try (XSSFWorkbook workbook = new XSSFWorkbook()) {
+			CreationHelper createHelper = workbook.getCreationHelper();
+			XSSFSheet sheet = workbook.createSheet(WorkbookUtil.createSafeSheetName("poi"));
 			// Create a cell with a value and set style to it.
 			for (int i = 0; i < 4; i++) {
 				XSSFRow row = sheet.createRow(i);
-				for (int j = 0; j < 4; j++) {
-					XSSFCell cell = row.createCell(j);
-					cell.setCellValue(j);
-					// cell.setCellStyle(style);
-				}
+				int j = 0;
+				// Integer
+				CellUtil.createCell(row, j++, "1");
+				// Float
+				CellUtil.createCell(row, j++, "1.2");
+				// Rich text string
+				row.createCell(j++).setCellValue(createHelper.createRichTextString("This is a string"));
+				// Boolean
+				CellUtil.createCell(row, j++, "true");
+				row.createCell(j++).setCellValue(true);
+				
+				CellStyle cellStyle = workbook.createCellStyle();
+				cellStyle.setDataFormat(createHelper.createDataFormat().getFormat("m/d/yy"));
+				// Date
+				XSSFCell dateCell = row.createCell(j++);
+				dateCell.setCellStyle(cellStyle);
+				dateCell.setCellValue(new Date());
+				// Calendar
+				XSSFCell calendarCell = row.createCell(j++);
+				calendarCell.setCellStyle(cellStyle);
+				calendarCell.setCellValue(Calendar.getInstance());
+				// Error
+				XSSFCell errorCell = row.createCell(j++);
+				errorCell.setCellType(CellType.ERROR);
+				errorCell.setCellValue("error");
 			}
-
-			File file = new File("/Users/emathur/Downloads/poi.xlsx");
-			try {
-				workbook.write(new FileOutputStream(file));
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			workbook.write(new FileOutputStream("/Users/emathur/Downloads/poi_datatypes.xlsx"));
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-
 	}
 }
